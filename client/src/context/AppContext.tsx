@@ -71,7 +71,7 @@ export const AppContextProvider: React.FC<AppContextProviderProps> = ({
   // Header hooks
   const userHeaders = useUserHeaders();
   const headers = useHeaders();
-  const { auth } = useAuth();
+  const { auth, refreshAccessToken } = useAuth();
 
   // Function to fetch admins
   const FetchAdmins = async () => {
@@ -106,14 +106,14 @@ export const AppContextProvider: React.FC<AppContextProviderProps> = ({
   };
 
   // SHOWTIMES
-  // Function to fetch all showtimes of a particular dare
+  // Function to fetch all showtimes of a particular date
   const FetchShowtimes = async (date: string) => {
     try {
       setIsFetchingShowtimes(true);
       const res = await axios.get(
         `${
           import.meta.env.VITE_SERVER_HOST
-        }/api/v1/showtimes/getShowtimesByDate/${encodeURIComponent(date)}`,
+        }/api/v1/showtimes/getShowtimesByDate/${date}`,
         {
           headers: userHeaders,
         }
@@ -203,7 +203,8 @@ export const AppContextProvider: React.FC<AppContextProviderProps> = ({
 
   // Fetch movies on component mount
   useEffect(() => {
-    if (auth) {
+    if (auth && !allMovies) {
+      refreshAccessToken();
       FetchMovies();
     }
   }, [auth]);

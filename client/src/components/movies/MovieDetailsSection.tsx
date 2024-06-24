@@ -1,9 +1,9 @@
 import React from "react";
-import { FaStar, FaClock } from "react-icons/fa";
-import MovieProps from "../../props/MovieProps";
-import getBgColor from "../../libs/GetBgColor";
+import { FaClock, FaStar } from "react-icons/fa";
 import calculateTime from "../../libs/CalculateTime";
-import formatDate from "../../libs/FormatDate";
+import formatIMDBMovieDate from "../../libs/FormatIMDBMovieDate";
+import getBgColor from "../../libs/GetBgColor";
+import MovieProps from "../../props/MovieProps";
 
 const MovieDetailsSection: React.FC<MovieProps> = ({
   title,
@@ -63,7 +63,7 @@ const MovieDetailsSection: React.FC<MovieProps> = ({
 
         {/* RELEASE DATE */}
         <div className="text-sm text-gray-400">
-          Release date: {formatDate(release_date)}
+          Release date: {formatIMDBMovieDate(release_date)}
         </div>
       </div>
     </section>

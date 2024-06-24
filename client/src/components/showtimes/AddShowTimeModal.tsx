@@ -14,11 +14,12 @@ import ScreenModal from "../shared/ScreenModal";
 import SelectInputField from "../shared/SelectInputField";
 import DateInputField from "./DateInputField";
 import ValidateShowtimeData from "../../libs/ValidateShowtimeData";
+import formatDateInDMY from "../../libs/FormatDateInDMY";
 
 // Empty show to initiate a show object
 const emptyShow: ShowtimeProps = {
   time: "10:00 AM",
-  date: new Date().toLocaleDateString(),
+  date: formatDateInDMY(new Date()),
   language: "",
   screen: "Screen 1",
   movie: {
@@ -58,7 +59,7 @@ const AddShowTimeModal: React.FC<AddShowTimeModal> = ({ closeModal }) => {
   // Function to chage date
   const changeDate = (date: string) => {
     const selectedDate = new Date(date);
-    setShow((prev) => ({ ...prev, date: selectedDate.toLocaleDateString() }));
+    setShow((prev) => ({ ...prev, date: formatDateInDMY(selectedDate) }));
   };
 
   // Function to change movie

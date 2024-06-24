@@ -2,6 +2,7 @@ import React from "react";
 import { IoMdRefresh } from "react-icons/io";
 import { useAppContext } from "../../context/AppContext";
 import ButtonLayout from "./ButtonLayout";
+import formatDateInDMY from "../../libs/FormatDateInDMY";
 
 // Props
 interface RefreshMovieProps {
@@ -32,8 +33,7 @@ const RefreshButton: React.FC<RefreshButtonProps> = ({ variant, ...props }) => {
   const refresh = () => {
     try {
       variant === "MOVIE" && FetchMovies();
-      variant === "SHOWTIME" &&
-        FetchShowtimes(selectedDate.toLocaleDateString());
+      variant === "SHOWTIME" && FetchShowtimes(formatDateInDMY(selectedDate));
       variant === "ADMINS" && FetchAdmins();
     } catch (error) {
       console.error(error);

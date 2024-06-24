@@ -125,7 +125,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     const refreshInterval = setInterval(() => {
       refreshAccessToken();
-    }, 10000); // Refreshing every 15 minutes
+    }, 15 * 60 * 1000); // Refreshing every 15 minutes
 
     return () => clearInterval(refreshInterval);
   }, [auth]);

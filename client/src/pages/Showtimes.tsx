@@ -7,6 +7,7 @@ import ShowtimesList from "../components/showtimes/ShowtimesList";
 import SidebarLayout from "../components/sidebar/SidebarLayout";
 import { useAppContext } from "../context/AppContext";
 import { useSearchParams } from "react-router-dom";
+import formatDateInDMY from "../libs/FormatDateInDMY";
 
 const Showtimes = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -20,8 +21,9 @@ const Showtimes = () => {
 
   // Use effect to set query date and fetch shows for selected date
   useEffect(() => {
-    setSearchParams({ date: selectedDate.toLocaleDateString() });
-    FetchShowtimes(selectedDate.toLocaleDateString());
+    const date = formatDateInDMY(selectedDate);
+    setSearchParams({ date });
+    FetchShowtimes(date);
   }, [selectedDate]);
 
   return (
