@@ -2,7 +2,7 @@ import {
   handleInternalError,
   handleUnAuthorizedError,
 } from "../libs/ThrowErrors.js";
-import { verifyJwt } from "../libs/jwt.js";
+import { verifyJwtAccessToken } from "../libs/jwt.js";
 import Admin from "../models/AdminModel.js";
 
 const AuthorizeMiddleware = async (req, res, next) => {
@@ -15,7 +15,7 @@ const AuthorizeMiddleware = async (req, res, next) => {
     }
 
     // Verifying token and findig user id  in access Token
-    const requestingUser = verifyJwt(accessToken);
+    const requestingUser = verifyJwtAccessToken(accessToken);
     if (!requestingUser || requestingUser.userId.length !== 24) {
       return handleUnAuthorizedError(res);
     }

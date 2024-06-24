@@ -1,19 +1,32 @@
 import jwt from "jsonwebtoken";
 
-// Function to sign access token
-export function signJwtAccessToken(payload) {
-  const secret_key = process.env.JWT_SECRET_KEY;
-  const token = jwt.sign(payload, secret_key);
-  return token;
-}
+const accessTokenExpiry = "15m";
+const refreshTokenExpiry = "7d";
 
-// Function to verify access token
-export function verifyJwt(token) {
+export const signJwtAccessToken = (payload) => {
+  return jwt.sign(payload, process.env.JWT_SECRET_KEY, {
+    expiresIn: accessTokenExpiry,
+  });
+};
+
+export const signJwtRefreshToken = (payload) => {
+  return jwt.sign(payload, process.env.REFRESH_JWT_SECRET_KEY, {
+    expiresIn: refreshTokenExpiry,
+  });
+};
+
+export const verifyJwtAccessToken = (token) => {
   try {
-    const secret_key = process.env.JWT_SECRET_KEY;
-    const decoded = jwt.verify(token, secret_key);
-    return decoded;
+    return jwt.verify(token, process.env.JWT_SECRET_KEY);
   } catch (error) {
     return null;
   }
-}
+};
+
+export const verifyJwtRefreshToken = (token) => {
+  try {
+    return jwt.verify(token, process.env.REFRESH_JWT_SECRET_KEY);
+  } catch (error) {
+    return null;
+  }
+};

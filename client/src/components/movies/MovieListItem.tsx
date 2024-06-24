@@ -11,6 +11,7 @@ const MovieListItem: React.FC<MovieProps> = ({
   runtime,
   release_date,
   _id,
+  status,
 }) => (
   <tr>
     {/* TITLE */}

@@ -5,7 +5,11 @@ import {
   handleInternalError,
   handleNotFoundError,
 } from "../libs/ThrowErrors.js";
-import { signJwtAccessToken } from "../libs/jwt.js";
+import {
+  signJwtAccessToken,
+  signJwtRefreshToken,
+  verifyJwtRefreshToken,
+} from "../libs/jwt.js";
 import Admin from "../models/AdminModel.js";
 
 // Handling the addition of a new admin
@@ -76,12 +80,14 @@ export const login = async (req, res) => {
     }
 
     // Signing a JWT access token
-    const accessToken = await signJwtAccessToken({ userId: admin.id });
+    const accessToken = signJwtAccessToken({ userId: admin.id });
+    const refreshToken = signJwtRefreshToken({ userId: admin.id });
 
     // Response
     return res.status(200).json({
       message: "Successfully Logged in",
       accessToken,
+      refreshToken,
       user: {
         _id: admin._id,
         username: admin.username,
@@ -177,6 +183,41 @@ export const deleteAccount = async (req, res) => {
     return res
       .status(200)
       .json({ message: "Account has been deleted successfully" });
+  } catch (error) {
+    console.error(error);
+    return handleInternalError(res);
+  }
+};
+
+// Handling token refresh
+export const refreshToken = async (req, res) => {
+  try {
+    const { refreshToken } = req.body;
+
+    if (!refreshToken) {
+      return handleBadRequest(res, "Refresh token is required");
+    }
+
+    // Verify the refresh token
+    const decoded = verifyJwtRefreshToken(refreshToken);
+    if (!decoded) {
+      return handleBadRequest(res, "Invalid refresh token");
+    }
+
+    // Checking if user exists in db
+    const userExists = await Admin.findById(decoded.userId);
+    if (!userExists) {
+      return handleBadRequest(res, "User not found");
+    }
+
+    // Generate a new access token
+    const newAccessToken = signJwtAccessToken({ userId: decoded.userId });
+
+    // Response
+    return res.status(200).json({
+      message: "Token refreshed successfully",
+      accessToken: newAccessToken,
+    });
   } catch (error) {
     console.error(error);
     return handleInternalError(res);

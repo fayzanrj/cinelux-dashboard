@@ -2,8 +2,6 @@ import {
   handleInternalError,
   handleUnAuthorizedError,
 } from "../libs/ThrowErrors.js";
-import { verifyJwt } from "../libs/jwt.js";
-import Admin from "../models/AdminModel.js";
 
 const UserAuthorizeMiddleware = async (req, res, next) => {
   try {

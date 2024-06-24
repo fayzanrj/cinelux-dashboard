@@ -3,7 +3,7 @@ import {
   handleUnAuthorizedError,
 } from "../libs/ThrowErrors.js";
 import Admin from "../models/AdminModel.js";
-import { verifyJwt } from "../libs/jwt.js";
+import { verifyJwtAccessToken } from "../libs/jwt.js";
 
 const AdminAuthorizeMiddleware = async (req, res, next) => {
   try {
@@ -15,7 +15,7 @@ const AdminAuthorizeMiddleware = async (req, res, next) => {
     }
 
     // Verifying token and findig user id  in access Token
-    const requestingUser = verifyJwt(accessToken);
+    const requestingUser = verifyJwtAccessToken(accessToken);
     if (!requestingUser || requestingUser.userId.length !== 24) {
       return handleUnAuthorizedError(res);
     }

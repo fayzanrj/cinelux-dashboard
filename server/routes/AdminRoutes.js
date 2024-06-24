@@ -44,4 +44,7 @@ router.delete(
   adminControllers.deleteAccount
 );
 
+// Route to refresh token
+router.post("/refreshToken", adminControllers.refreshToken);
+
 export default router;

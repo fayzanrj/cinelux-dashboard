@@ -81,6 +81,7 @@ function App() {
           toastOptions={{
             style: {
               minHeight: "40px",
+              height: "fit-content",
               fontSize: "16px",
               background: "#292E37",
               color: "#ffffff",

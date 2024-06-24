@@ -11,7 +11,7 @@ import ScreenLoader from "../components/shared/ScreenLoader";
 import Cookies from "js-cookie";
 
 // App auth props
-interface auth {
+interface Auth {
   user: {
     _id: string;
     username: string;
@@ -19,23 +19,25 @@ interface auth {
     name: string;
   };
   accessToken: string;
+  refreshToken: string;
 }
 
 // Auth Context props
 interface AuthContextProps {
-  auth: auth | null;
+  auth: Auth | null;
   login: (
     username: string,
     password: string
   ) => Promise<{ success: boolean; message: string }>;
   logout: () => void;
+  refreshAccessToken: () => Promise<boolean>; // Added refreshAccessToken function
   loading: boolean;
 }
 
 // Auth Context
 const AuthContext = createContext<AuthContextProps | undefined>(undefined);
 
-// Auth Provide props
+// Auth Provider props
 interface AuthProviderProps {
   children: ReactNode;
 }
@@ -43,14 +45,14 @@ interface AuthProviderProps {
 // Auth Provider
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // States
-  const [auth, setAuth] = useState<auth | null>(null);
+  const [auth, setAuth] = useState<Auth | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Function to fetch user data from local storage
+  // Function to fetch user data from cookies
   useEffect(() => {
-    const savedauth = Cookies.get("auth");
-    if (savedauth) {
-      setAuth(JSON.parse(savedauth));
+    const savedAuth = Cookies.get("auth");
+    if (savedAuth) {
+      setAuth(JSON.parse(savedAuth));
     }
     setLoading(false);
   }, []);
@@ -66,7 +68,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           password,
         }
       );
-      const authData: auth = response.data;
+      const authData: Auth = response.data;
       setAuth(authData);
       // Setting user data in cookies
       Cookies.set("auth", JSON.stringify(authData), { expires: 7 });
@@ -86,8 +88,52 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     Cookies.remove("auth");
   };
 
+  // Function to refresh the access token
+  const refreshAccessToken = async () => {
+    try {
+      const refreshToken = auth?.refreshToken;
+      if (!refreshToken) {
+        throw new Error("No refresh token available");
+      }
+
+      const response = await axios.post(
+        `${import.meta.env.VITE_SERVER_HOST}/api/v1/admin/refreshToken`,
+        {
+          refreshToken,
+        }
+      );
+
+      const newAccessToken = response.data.accessToken;
+
+      if (auth) {
+        const updatedAuth = { ...auth, accessToken: newAccessToken };
+        setAuth(updatedAuth);
+        Cookies.set("auth", JSON.stringify(updatedAuth), { expires: 7 });
+      }
+
+      return true;
+    } catch (error) {
+      console.error("Failed to refresh access token", error);
+      logout();
+      return false;
+    }
+  };
+
+  // Automatically refresh access token when it expires
+  useEffect(() => {
+    if (!auth) return;
+
+    const refreshInterval = setInterval(() => {
+      refreshAccessToken();
+    }, 10000); // Refreshing every 15 minutes
+
+    return () => clearInterval(refreshInterval);
+  }, [auth]);
+
   return (
-    <AuthContext.Provider value={{ auth, login, logout, loading }}>
+    <AuthContext.Provider
+      value={{ auth, login, logout, refreshAccessToken, loading }}
+    >
       {children}
     </AuthContext.Provider>
   );
@@ -102,7 +148,7 @@ export const useAuth = (): AuthContextProps => {
   return context;
 };
 
-// Component to protect routes from uauthorized access
+// Component to protect routes from unauthorized access
 export const RequiredAuth: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
