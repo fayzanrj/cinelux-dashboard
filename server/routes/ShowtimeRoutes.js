@@ -32,6 +32,13 @@ router.get(
   showtimeControllers.getShowtimesbyDate
 );
 
+router.get(
+  "/getShowtimesByMovieId/:id",
+  UserAuthorizeMiddleware,
+  IsValidIdMiddle,
+  showtimeControllers.getShowtimesbyMovieId
+);
+
 // Route to get all showtimes, requires authorization
 router.get(
   "/getAllShowtimes",
