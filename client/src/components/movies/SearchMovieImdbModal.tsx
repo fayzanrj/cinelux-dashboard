@@ -38,6 +38,7 @@ const SearchMovieImdbModal: React.FC<SearchMovieImdbModalProps> = ({
           id="searchIMDB"
           label="Search IMDB"
           placeholder="Enter IMDB ID"
+          value={imdbId}
           onChange={handleOnChange}
         />
       </FormLayout>

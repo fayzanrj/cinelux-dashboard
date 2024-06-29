@@ -10,6 +10,7 @@ import useHeaders from "../../hooks/useHeaders";
 import ScreenLoader from "../shared/ScreenLoader";
 import { handleApiError } from "../../libs/HandleApiError";
 import { toast } from "sonner";
+import StateInputField from "../shared/StateInputField";
 
 // Props
 interface EditMovieModalProps {
@@ -38,6 +39,10 @@ const EditMovieModal: React.FC<EditMovieModalProps> = ({
   // Function to change booking of the movie
   const changeBooking = (val: string) =>
     setMovie((prev) => (prev ? { ...prev, isBooking: val === "true" } : null));
+
+  // Function to add trailer link
+  const changeTrailerLink = (val: string) =>
+    setMovie((prev) => prev && { ...prev, trailer_link: val });
 
   // Function to Edit
   const Edit = async (e: React.FormEvent) => {
@@ -99,6 +104,13 @@ const EditMovieModal: React.FC<EditMovieModalProps> = ({
             options={bookingOptions}
             defaultVal={movie.isBooking ? "true" : "false"}
             onChange={changeBooking}
+          />
+          <StateInputField
+            id="trailer_link"
+            label="Trailer Link"
+            placeholder="Add trailer link"
+            value={movie.trailer_link}
+            onChange={changeTrailerLink}
           />
         </FormLayout>
       )}

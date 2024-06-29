@@ -11,6 +11,7 @@ import SidebarLayout from "../components/sidebar/SidebarLayout";
 import { bookingOptions, statusOptions } from "../constants/SelectOptions";
 import FetchMovieFromIMDB from "../libs/FetchMovieFromIMDB";
 import MovieProps from "../props/MovieProps";
+import StateInputField from "../components/shared/StateInputField";
 
 const AddMovie = () => {
   // States
@@ -70,6 +71,10 @@ const AddMovie = () => {
   const changeBooking = (val: string) =>
     setMovie((prev) => (prev ? { ...prev, isBooking: val === "true" } : null));
 
+  // Function to add trailer link
+  const changeTrailerLink = (val: string) =>
+    setMovie((prev) => prev && { ...prev, trailer_link: val });
+
   return (
     <SidebarLayout pageName="Add Movie" showBack>
       {/* SEARCH MOVIE BUTTON */}
@@ -96,6 +101,13 @@ const AddMovie = () => {
               onChange={changeBooking}
             />
           </div>
+          <StateInputField
+            id="trailer_link"
+            label="Trailer Link"
+            placeholder="Add trailer link"
+            value={movie.trailer_link}
+            onChange={changeTrailerLink}
+          />
           <MovieDetailsSection {...movie} />
         </>
       ) : (

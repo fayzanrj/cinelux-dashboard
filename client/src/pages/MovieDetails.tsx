@@ -9,6 +9,7 @@ import NotFound from "../components/shared/NotFound";
 import MovieDetailsSection from "../components/movies/MovieDetailsSection";
 import SelectInputField from "../components/shared/SelectInputField";
 import { bookingOptions, statusOptions } from "../constants/SelectOptions";
+import StateInputField from "../components/shared/StateInputField";
 
 const MovieDetails = () => {
   // States
@@ -81,6 +82,13 @@ const MovieDetails = () => {
               disabled
             />
           </div>
+          <StateInputField
+            id="trailer_link"
+            label="Trailer Link"
+            placeholder="Trailer link"
+            value={movie.trailer_link}
+            readOnly
+          />
           <MovieDetailsSection {...movie} />
         </>
       ) : (

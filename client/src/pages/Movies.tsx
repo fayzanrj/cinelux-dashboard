@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import MoviesList from "../components/movies/MoviesList";
 import AddNewButton from "../components/shared/AddNewButton";
 import StateInputField from "../components/shared/StateInputField";
@@ -11,23 +11,33 @@ import ScreenLoader from "../components/shared/ScreenLoader";
 const Movies = () => {
   // State
   const [filteredMovies, setFilteredMovies] = useState<MovieProps[] | null>([]);
+  const [searchText, setSearchText] = useState("");
   // Hook
   const { allMovies, isFetchingMovies } = useAppContext();
 
-  // Function to search movie
-  const search = (text: string) => {
-    if (text) {
-      setFilteredMovies(
-        (prev) =>
-          prev &&
-          prev.filter((movie) =>
-            movie.title.toLowerCase().includes(text.toLowerCase())
-          )
-      );
-    } else {
-      setFilteredMovies(allMovies);
-    }
+  // Function to handle search text
+  const onSearchChange = (text: string) => {
+    setSearchText(text);
+    search(text);
   };
+
+  // Function to search movie
+  const search = useCallback(
+    (text: string) => {
+      if (text) {
+        setFilteredMovies(
+          (prev) =>
+            prev &&
+            prev.filter((movie) =>
+              movie.title.toLowerCase().includes(text.toLowerCase())
+            )
+        );
+      } else {
+        setFilteredMovies(allMovies);
+      }
+    },
+    [searchText]
+  );
 
   // Use effect to set all movies
   useEffect(() => {
@@ -45,7 +55,8 @@ const Movies = () => {
           id="search"
           label="Search Movies"
           placeholder="Enter movie name"
-          onChange={search}
+          value={searchText}
+          onChange={onSearchChange}
           srOnly
         />
       </section>
