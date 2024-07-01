@@ -1,9 +1,9 @@
+import { validateDate } from "../libs/RegexFunctions.js";
 import {
   handleBadRequest,
   handleInternalError,
   handleNotFoundError,
 } from "../libs/ThrowErrors.js";
-import dateRegex from "../libs/dateRegex.js";
 import Movie from "../models/MovieModel.js";
 import Showtime from "../models/ShowtimeModel.js";
 
@@ -57,7 +57,7 @@ export const getShowtimesbyDate = async (req, res) => {
     const date = req.params.date;
 
     // Validating date format
-    if (!dateRegex.test(date)) {
+    if (!validateDate(date)) {
       return handleBadRequest(
         res,
         "Invalid date format. Date should be in DD-MM-YYYY format."
@@ -84,7 +84,7 @@ export const getShowtimesbyMovieId = async (req, res) => {
     const { date } = req.query;
 
     // Validating date format
-    if (!dateRegex.test(date)) {
+    if (!validateDate(date)) {
       return handleBadRequest(
         res,
         "Invalid date format. Date should be in DD-MM-YYYY format."

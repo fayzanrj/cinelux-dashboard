@@ -1,16 +1,15 @@
+import { validateDate, validateTime } from "../libs/RegexFunctions.js";
 import {
   handleIncompleteError,
   handleNotFoundError,
 } from "../libs/ThrowErrors.js";
 import Movie from "../models/MovieModel.js";
-import dateRegex from "../libs/dateRegex.js";
 
 const ValidateShowtimeData = async (req, res, next) => {
   const showtime = req.body;
 
   // Validating time (example: should be in HH:MM AM/PM format)
-  const timeRegex = /^(0?[1-9]|1[0-2]):[0-5][0-9] (AM|PM)$/;
-  if (!timeRegex.test(showtime.time)) {
+  if (!validateTime(showtime.time)) {
     return handleBadRequest(
       res,
       "Invalid time format. Time should be in HH:MM AM/PM format."
@@ -18,7 +17,7 @@ const ValidateShowtimeData = async (req, res, next) => {
   }
 
   // Validating date (example: should be in M/D/YYYY format)
-  if (!dateRegex.test(showtime.date)) {
+  if (!validateDate(showtime.date)) {
     return handleBadRequest(
       res,
       "Invalid date format. Date should be in M/D/YYYY format."
