@@ -1,4 +1,5 @@
 import {
+  handleBadRequest,
   handleInternalError,
   handleNotFoundError,
 } from "../libs/ThrowErrors.js";
@@ -82,6 +83,50 @@ export const editMovie = async (req, res) => {
     // Response
     return res.status(200).json({
       message: "Movie has been updated",
+    });
+  } catch (error) {
+    console.error(error);
+    handleInternalError(res);
+  }
+};
+
+// Controller to get movie by status
+export const getMoviesByStatus = async (req, res) => {
+  try {
+    const { status } = req.params;
+
+    // Checking is status is valid
+    if (
+      status !== "booking_now" &&
+      status !== "now_showing" &&
+      status !== "coming_soon"
+    ) {
+      return handleBadRequest(res, "Invalid status");
+    }
+
+
+    let movies;
+
+    // Getting movies from db
+    if (status === "booking_now") {
+      movies = await Movie.find({
+        status: "COMING_SOON",
+        isBooking: true,
+      });
+    } else if (status === "coming_soon") {
+      movies = await Movie.find({
+        status: "COMING_SOON",
+        isBooking: false,
+      });
+    } else {
+      movies = await Movie.find({
+        status: "NOW_SHOWING",
+      });
+    }
+
+    // Response
+    return res.status(200).send({
+      movies,
     });
   } catch (error) {
     console.error(error);

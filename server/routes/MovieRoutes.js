@@ -23,6 +23,13 @@ router.get(
   movieControllers.getAllMovies
 );
 
+// Route to get movies by status, requires user authorization
+router.get(
+  "/getMoviesByStatus/:status",
+  UserAuthorizeMiddleware,
+  movieControllers.getMoviesByStatus
+);
+
 // Route to delete a movie by ID, requires authorization
 router.delete(
   "/delete/:id",
