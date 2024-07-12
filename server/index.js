@@ -8,6 +8,7 @@ import adminRoutes from "./routes/AdminRoutes.js";
 import movieRoutes from "./routes/MovieRoutes.js";
 import showtimeRoutes from "./routes/ShowtimeRoutes.js";
 import codeRoutes from "./routes/CodeRoutes.js";
+import bookingRoutes from "./routes/BookingRoutes.js";
 
 // Loading environment variables from .env file
 env.config();
@@ -30,6 +31,7 @@ app.use("/api/v1/admin", adminRoutes);
 app.use("/api/v1/movies", movieRoutes);
 app.use("/api/v1/showtimes", showtimeRoutes);
 app.use("/api/v1/userAuth", codeRoutes);
+app.use("/api/v1/bookings", bookingRoutes);
 app.use("/", (req, res) => res.status(200).json({ message: "API WORKING" }));
 
 // Starting the server
