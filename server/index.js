@@ -9,7 +9,6 @@ import bookingRoutes from "./routes/BookingRoutes.js";
 import codeRoutes from "./routes/CodeRoutes.js";
 import movieRoutes from "./routes/MovieRoutes.js";
 import showtimeRoutes from "./routes/ShowtimeRoutes.js";
-import { handleStripeWebhook } from "./controllers/BookingControllers.js";
 import Stripe from "stripe";
 
 // Loading environment variables from .env file
@@ -27,18 +26,12 @@ export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 // Middleware to parse JSON bodies of requests
 app.use((req, res, next) => {
-  if (req.originalUrl === "/api/v1/stripeWebhook") {
+  if (req.originalUrl === "/api/v1/bookings/stripeWebhook") {
     next();
   } else {
     express.json()(req, res, next);
   }
 });
-
-app.post(
-  "/api/v1/stripeWebhook",
-  express.raw({ type: "application/json" }),
-  handleStripeWebhook
-);
 
 // Middleware to parse cookies
 app.use(cookieParser());

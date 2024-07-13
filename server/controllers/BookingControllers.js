@@ -1,16 +1,24 @@
-import { handleInternalError } from "../libs/ThrowErrors.js";
-import Stripe from "stripe";
-import Showtime from "../models/ShowtimeModel.js";
-import Booking from "../models/BookingModel.js";
 import { stripe } from "../index.js";
-
+import { validateEmail } from "../libs/RegexFunctions.js";
+import { handleBadRequest, handleInternalError } from "../libs/ThrowErrors.js";
+import Booking from "../models/BookingModel.js";
+import Showtime from "../models/ShowtimeModel.js";
 
 export const bookTickets = async (req, res) => {
   try {
-
     // Destructuring
     const showtimeId = req.params.id;
     const { user, seats } = req.body;
+    const { name, email } = user;
+
+    // Validating User
+    const isValidEmail = validateEmail(email);
+    if (!isValidEmail || !name) {
+      return handleBadRequest(
+        res,
+        "Invalid data. Kindly, refresh page and try again"
+      );
+    }
 
     // Finding show
     const showtime = await Showtime.findById(showtimeId);
@@ -43,6 +51,10 @@ export const bookTickets = async (req, res) => {
       isPaid: false,
     });
 
+    // Saving booked seats
+    showtime.booked.push(...booking.seats);
+    await showtime.save();
+
     // Creating stripe session
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
@@ -50,7 +62,7 @@ export const bookTickets = async (req, res) => {
       success_url: `${process.env.PAYMENT_SUCCESS_URL}/showtimes/${showtime.id}/tickets/paymentSuccess?bookingId=${booking.id}`,
       cancel_url: `${process.env.PAYMENT_SUCCESS_URL}/showtimes/${showtime.id}/tickets/paymentFailed?bookingId=${booking.id}`,
       customer_email: user.email,
-      client_reference_id: showtime.id,
+      client_reference_id: booking.id,
       line_items: [
         {
           price_data: {
@@ -82,12 +94,9 @@ export const bookTickets = async (req, res) => {
 };
 
 export const handleStripeWebhook = async (req, res) => {
-  // Initiating stripe
   const sig = req.headers["stripe-signature"];
-
   let event;
 
-  console.log({ body: req.body },process.env.STRIPE_WEBHOOK_SECRET);
   // Verifying webhook
   try {
     event = stripe.webhooks.constructEvent(
@@ -102,24 +111,32 @@ export const handleStripeWebhook = async (req, res) => {
 
   // Getting session and acting accordingly
   const session = event.data.object;
+  // Find booking object
+  const booking = await Booking.findById(session.client_reference_id);
   switch (event.type) {
     case "checkout.session.completed":
+    case "checkout.session.async_payment_succeeded":
       try {
-        const booking = await Booking.findById(session.client_reference_id);
         if (booking) {
           booking.isPaid = true;
           await booking.save();
-
-          const showtime = await Showtime.findById(booking.showtimeId);
-          if (showtime) {
-            showtime.booked.push(...booking.seats);
-            await showtime.save();
-          }
         }
       } catch (error) {
         console.error("Error updating booking:", error);
       }
       break;
+    case "checkout.session.async_payment_failed":
+    case "checkout.session.expired":
+      if (booking) {
+        const showtime = await Showtime.findById(booking.showtimeId);
+        if (showtime) {
+          // Removing the seats from the showtime's booked seats
+          showtime.booked = showtime.booked.filter(
+            (seat) => !booking.seats.includes(seat)
+          );
+          await showtime.save();
+        }
+      }
 
     // Handle other event types
     default:

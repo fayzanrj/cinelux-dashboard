@@ -14,5 +14,12 @@ router.post(
   IsValidIdMiddle,
   bookingControllers.bookTickets
 );
-  
+
+// Route to verify payments
+router.post(
+  "/stripeWebhook",
+  bodyParser.raw({ type: "application/json" }),
+  bookingControllers.handleStripeWebhook
+);
+
 export default router;
