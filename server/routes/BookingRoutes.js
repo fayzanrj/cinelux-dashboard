@@ -1,7 +1,8 @@
 import express from "express";
 import UserAuthorizeMiddleware from "../middlewares/UserAuthorizeMiddleware.js";
-import * as paymentControllers from "../controllers/BookingController.js";
+import * as bookingControllers from "../controllers/BookingControllers.js";
 import IsValidIdMiddle from "../middlewares/IsValidIdMiddle.js";
+import bodyParser from "body-parser";
 
 // Router object
 const router = express.Router();
@@ -11,7 +12,7 @@ router.post(
   "/bookTickets/:id",
   UserAuthorizeMiddleware,
   IsValidIdMiddle,
-  paymentControllers.bookTickets
+  bookingControllers.bookTickets
 );
-
+  
 export default router;

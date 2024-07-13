@@ -10,6 +10,10 @@ const bookingSchema = new Schema(
       type: String,
       required: true,
     },
+    showtimeId :{
+      type: String,
+      required: true,
+    },
     date: {
       type: String,
       required: true,
@@ -37,6 +41,18 @@ const bookingSchema = new Schema(
         type: String,
         required: true,
       },
+    },
+    isPaid: {
+      type: Boolean,
+      required: true,
+    },
+    paymentId: {
+      type: String,
+      required: false,
+    },
+    paymentSessionId :{
+      type: String,
+      required: false,
     },
   },
   { timestamps: true }

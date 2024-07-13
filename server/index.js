@@ -5,10 +5,12 @@ import env from "dotenv";
 import express from "express";
 import connectToDB from "./connectToDB.js";
 import adminRoutes from "./routes/AdminRoutes.js";
+import bookingRoutes from "./routes/BookingRoutes.js";
+import codeRoutes from "./routes/CodeRoutes.js";
 import movieRoutes from "./routes/MovieRoutes.js";
 import showtimeRoutes from "./routes/ShowtimeRoutes.js";
-import codeRoutes from "./routes/CodeRoutes.js";
-import bookingRoutes from "./routes/BookingRoutes.js";
+import { handleStripeWebhook } from "./controllers/BookingControllers.js";
+import Stripe from "stripe";
 
 // Loading environment variables from .env file
 env.config();
@@ -16,12 +18,30 @@ env.config();
 // Initialising Express App
 const app = express();
 // Enabling CORS middleware
+
+// Enabling CORS middleware
 app.use(cors());
+
+// Initialising stripe
+export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+
+// Middleware to parse JSON bodies of requests
+app.use((req, res, next) => {
+  if (req.originalUrl === "/api/v1/stripeWebhook") {
+    next();
+  } else {
+    express.json()(req, res, next);
+  }
+});
+
+app.post(
+  "/api/v1/stripeWebhook",
+  express.raw({ type: "application/json" }),
+  handleStripeWebhook
+);
 
 // Middleware to parse cookies
 app.use(cookieParser());
-// Middleware to parse JSON bodies of requests
-app.use(bodyParser.json());
 
 // Connecting to MongoDB
 connectToDB();
