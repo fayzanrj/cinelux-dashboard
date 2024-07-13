@@ -10,6 +10,7 @@ import codeRoutes from "./routes/CodeRoutes.js";
 import movieRoutes from "./routes/MovieRoutes.js";
 import showtimeRoutes from "./routes/ShowtimeRoutes.js";
 import Stripe from "stripe";
+import BookingNumber from "./models/BookingNumberModel.js";
 
 // Loading environment variables from .env file
 env.config();

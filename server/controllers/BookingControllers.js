@@ -1,67 +1,113 @@
 import { stripe } from "../index.js";
 import { validateEmail } from "../libs/RegexFunctions.js";
-import { handleBadRequest, handleInternalError } from "../libs/ThrowErrors.js";
+import {
+  handleBadRequest,
+  handleInternalError,
+  handleNotFoundError,
+} from "../libs/ThrowErrors.js";
 import Booking from "../models/BookingModel.js";
+import BookingNumber from "../models/BookingNumberModel.js";
 import Showtime from "../models/ShowtimeModel.js";
 
+// Function to find and return booking and showtime object
+const findBookingAndShowtime = async (bookingId) => {
+  const booking = await Booking.findOne({ bookingNumber: parseInt(bookingId) });
+  if (!booking) throw new Error("No booking found");
+
+  const showtime = await Showtime.findById(booking.showtimeId);
+  if (!showtime) throw new Error("No show found");
+  return { booking, showtime };
+};
+
+// Function to add and remove seats from showtime booked
+const updateShowtimeBookedSeats = async (showtime, seats, variant = "add") => {
+  if (variant === "add") {
+    showtime.booked.push(...seats);
+  } else if (variant === "remove") {
+    showtime.booked = showtime.booked.filter((seat) => !seats.includes(seat));
+  }
+  await Showtime.findByIdAndUpdate(showtime.id, { ...showtime });
+};
+
+// Function to handle booking status checks
+const checkBookingStatus = (booking, res, message) => {
+  // If booking's payment is paid and booking status is verified (i.e. booking is already verified)
+  // OR if booking's payment is not paid and booking status is paymentFailed (i.e. booking is already failed)
+  if (
+    (booking.isPaid && booking.status === "verified") ||
+    (!booking.isPaid && booking.status === "paymentFailed")
+  ) {
+    return true
+  }
+};
+
+// Function to create a booking and initialise payment session
 export const bookTickets = async (req, res) => {
   try {
-    // Destructuring
-    const showtimeId = req.params.id;
-    const { user, seats } = req.body;
-    const { name, email } = user;
+    // Destructuring request
+    const { id: showtimeId } = req.params;
+    const {
+      user: { name, email },
+      seats,
+    } = req.body;
 
-    // Validating User
-    const isValidEmail = validateEmail(email);
-    if (!isValidEmail || !name) {
+    // Validating user data
+    if (!validateEmail(email) || !name) {
       return handleBadRequest(
         res,
-        "Invalid data. Kindly, refresh page and try again"
+        "Invalid data. Please refresh the page and try again."
       );
     }
 
-    // Finding show
+    // Finding showtime
     const showtime = await Showtime.findById(showtimeId);
-    if (!showtime) {
-      return handleNotFoundError(res, "Show not found");
-    }
+    if (!showtime) return handleNotFoundError(res, "Show not found");
 
-    // Checking if seats are already booked
+    // Checking if any ticket is already booked
     const alreadyBooked = seats.filter((seat) =>
       showtime.booked.includes(seat)
     );
     if (alreadyBooked.length > 0) {
-      const seatsString = alreadyBooked.join(", ");
-      return handleBadRequest(res, `${seatsString} has already been booked`);
+      return handleBadRequest(
+        res,
+        `${alreadyBooked.join(", ")} has already been booked`
+      );
     }
 
-    // Creating Booking
+    // Extracting latest booking number and incrementing it
+    const latestBookingNumber = await BookingNumber.findOne();
+    const newBookingNumber = latestBookingNumber.number + 1;
+
+    // Initialising a booking object in database
     const booking = await Booking.create({
+      bookingNumber: newBookingNumber,
       date: showtime.date,
       time: showtime.time,
       language: showtime.language,
       screen: showtime.screen,
       showtimeId: showtime.id,
-      customerEmail: user.email,
-      customerName: user.name,
-      movie: {
-        title: showtime.movie.title,
-      },
+      customerEmail: email,
+      customerName: name,
+      movie: { title: showtime.movie.title },
       seats,
+      status: "paymentRequired",
       isPaid: false,
     });
 
-    // Saving booked seats
-    showtime.booked.push(...booking.seats);
-    await showtime.save();
+    // Adding seats
+    await updateShowtimeBookedSeats(showtime, seats, "add");
+    // Updating booking number in database
+    await BookingNumber.findByIdAndUpdate(latestBookingNumber.id, {
+      number: newBookingNumber,
+    });
 
-    // Creating stripe session
+    // Initialising payment session
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       mode: "payment",
-      success_url: `${process.env.PAYMENT_SUCCESS_URL}/showtimes/${showtime.id}/tickets/paymentSuccess?bookingId=${booking.id}`,
-      cancel_url: `${process.env.PAYMENT_SUCCESS_URL}/showtimes/${showtime.id}/tickets/paymentFailed?bookingId=${booking.id}`,
-      customer_email: user.email,
+      success_url: `${process.env.PAYMENT_SUCCESS_URL}/showtimes/${showtime.id}/tickets/paymentSuccess?bookingId=${booking.bookingNumber}`,
+      cancel_url: `${process.env.PAYMENT_SUCCESS_URL}/showtimes/${showtime.id}/tickets/paymentFailed?bookingId=${booking.bookingNumber}`,
+      customer_email: email,
       client_reference_id: booking.id,
       line_items: [
         {
@@ -70,7 +116,7 @@ export const bookTickets = async (req, res) => {
             unit_amount: parseInt(process.env.TICKET_PRICE || 8) * 100,
             product_data: {
               name: `Seats for ${showtime.movie.title} (${showtime.language})`,
-              description: `${seats.join(",")} for ${showtime.date} at ${
+              description: `${seats.join(", ")} for ${showtime.date} at ${
                 showtime.time
               }`,
             },
@@ -80,7 +126,7 @@ export const bookTickets = async (req, res) => {
       ],
     });
 
-    // Adding session id in booking
+    // Adding payment session id in booking object
     await Booking.findByIdAndUpdate(booking.id, {
       paymentSessionId: session.id,
     });
@@ -93,12 +139,85 @@ export const bookTickets = async (req, res) => {
   }
 };
 
+// Function to verify booking after payment is completed
+export const verifyBooking = async (req, res) => {
+  try {
+    // Destructuring
+    const { bookingId } = req.params;
+
+    // Finding booking object in database
+    const { booking } = await findBookingAndShowtime(bookingId);
+
+    // Checking booking's status
+    const isAlreadyChecked = checkBookingStatus(booking);
+    if(isAlreadyChecked) return res.status(403).send("forbidden")
+
+    // If booking's payment is not paid and booking's status is requiredPayment (i.e. Booking is failed)
+    if (!booking.isPaid && booking.status === "paymentRequired") {
+      // Then we cannot verify the booking, so we return error that redirects client to failedPayment page from client side
+      return handleBadRequest(res, "Invalid Booking");
+    }
+
+    // Updating booking status as verified
+    booking.status = "verified";
+    await booking.save();
+
+    // Response
+    return res.status(200).json({ message: "Verified" });
+  } catch (error) {
+    console.error(error);
+    if (error.message === "No booking found") {
+      handleNotFoundError(res, error.message);
+    } else {
+      handleInternalError(res);
+    }
+  }
+};
+
+// Function to update booking if failed
+export const bookingFailed = async (req, res) => {
+  try {
+    // Destructuring
+    const { bookingId } = req.params;
+
+    // Getting booking and showtime object from database
+    const { booking, showtime } = await findBookingAndShowtime(bookingId);
+
+    // Checking booking's status
+    const isAlreadyChecked = checkBookingStatus(booking);
+    if(isAlreadyChecked) return res.status(403).send("forbidden")
+
+    // If bookings payment is paid then we return an error that redirects client to paymentSuccess page from client side
+    if (booking.isPaid) return handleBadRequest(res, "Invalid Request");
+
+    // Removing booking seats from showtime's booked seats
+    if (showtime) {
+      await updateShowtimeBookedSeats(showtime, booking.seats, "remove");
+    }
+
+    // Updating booking status
+    booking.status = "paymentFailed";
+    await booking.save();
+
+    // Response
+    return res.status(200).json({ message: "Updated status" });
+  } catch (error) {
+    console.error(error);
+    if (error.message === "No booking found") {
+      handleNotFoundError(res, error.message);
+    } else {
+      handleInternalError(res);
+    }
+  }
+};
+
 export const handleStripeWebhook = async (req, res) => {
+  // Extracting signature header
   const sig = req.headers["stripe-signature"];
   let event;
 
-  // Verifying webhook
   try {
+    // Verifying
     event = stripe.webhooks.constructEvent(
       req.body,
       sig,
@@ -109,38 +228,35 @@ export const handleStripeWebhook = async (req, res) => {
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
-  // Getting session and acting accordingly
+  // Getting session and booking object from database
   const session = event.data.object;
-  // Find booking object
   const booking = await Booking.findById(session.client_reference_id);
-  switch (event.type) {
-    case "checkout.session.completed":
-    case "checkout.session.async_payment_succeeded":
-      try {
+
+  try {
+    switch (event.type) {
+      case "checkout.session.completed":
+      case "checkout.session.async_payment_succeeded":
         if (booking) {
+          // Updating booking's payment status
           booking.isPaid = true;
           await booking.save();
         }
-      } catch (error) {
-        console.error("Error updating booking:", error);
-      }
-      break;
-    case "checkout.session.async_payment_failed":
-    case "checkout.session.expired":
-      if (booking) {
-        const showtime = await Showtime.findById(booking.showtimeId);
-        if (showtime) {
-          // Removing the seats from the showtime's booked seats
-          showtime.booked = showtime.booked.filter(
-            (seat) => !booking.seats.includes(seat)
-          );
-          await showtime.save();
+        break;
+      case "checkout.session.async_payment_failed":
+      case "checkout.session.expired":
+        if (booking) {
+          // Finding showtime and then removing booked seats
+          const showtime = await Showtime.findById(booking.showtimeId);
+          if (showtime) {
+            await updateShowtimeBookedSeats(showtime, booking.seats, "remove");
+          }
         }
-      }
-
-    // Handle other event types
-    default:
-      console.log(`Unhandled event type ${event.type}`);
+        break;
+      default:
+        console.log(`Unhandled event type ${event.type}`);
+    }
+  } catch (error) {
+    console.error("Error handling webhook event:", error);
   }
 
   res.json({ received: true });

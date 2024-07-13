@@ -2,6 +2,15 @@ import mongoose, { Schema } from "mongoose";
 
 const bookingSchema = new Schema(
   {
+    bookingNumber: {
+      type: Number,
+      required: true,
+      unique: true,
+    },
+    status: {
+      type: String,
+      required: true,
+    },
     customerName: {
       type: String,
       required: true,
@@ -10,7 +19,7 @@ const bookingSchema = new Schema(
       type: String,
       required: true,
     },
-    showtimeId :{
+    showtimeId: {
       type: String,
       required: true,
     },
@@ -50,7 +59,7 @@ const bookingSchema = new Schema(
       type: String,
       required: false,
     },
-    paymentSessionId :{
+    paymentSessionId: {
       type: String,
       required: false,
     },
