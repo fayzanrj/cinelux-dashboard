@@ -1,4 +1,9 @@
 import { stripe } from "../index.js";
+import {
+  checkBookingStatus,
+  findBookingAndShowtime,
+  updateShowtimeBookedSeats,
+} from "../libs/bookingHelpers.js";
 import { validateEmail } from "../libs/RegexFunctions.js";
 import {
   handleBadRequest,
@@ -9,35 +14,44 @@ import Booking from "../models/BookingModel.js";
 import BookingNumber from "../models/BookingNumberModel.js";
 import Showtime from "../models/ShowtimeModel.js";
 
-// Function to find and return booking and showtime object
-const findBookingAndShowtime = async (bookingId) => {
-  const booking = await Booking.findOne({ bookingNumber: parseInt(bookingId) });
-  if (!booking) throw new Error("No booking found");
+// Function to find bookings and send back
+export const getBookings = async (req, res) => {
+  try {
+    // Destruturing
+    const { email } = req.query;
 
-  const showtime = await Showtime.findById(booking.showtimeId);
-  if (!showtime) throw new Error("No show found");
-  return { booking, showtime };
-};
+    // Validating email
+    if (!validateEmail(email)) {
+      return handleBadRequest(
+        res,
+        "Invalid data. Please refresh the page and try again."
+      );
+    }
 
-// Function to add and remove seats from showtime booked
-const updateShowtimeBookedSeats = async (showtime, seats, variant = "add") => {
-  if (variant === "add") {
-    showtime.booked.push(...seats);
-  } else if (variant === "remove") {
-    showtime.booked = showtime.booked.filter((seat) => !seats.includes(seat));
+    // Finding bookings
+    const bookings = await Booking.find({
+      customerEmail: email,
+    });
+
+    // Response
+    return res.status(200).json({ bookings });
+  } catch (error) {
+    console.error(error);
+    handleInternalError(res);
   }
-  await Showtime.findByIdAndUpdate(showtime.id, { ...showtime });
 };
 
-// Function to handle booking status checks
-const checkBookingStatus = (booking, res, message) => {
-  // If booking's payment is paid and booking status is verified (i.e. booking is already verified)
-  // OR if booking's payment is not paid and booking status is paymentFailed (i.e. booking is already failed)
-  if (
-    (booking.isPaid && booking.status === "verified") ||
-    (!booking.isPaid && booking.status === "paymentFailed")
-  ) {
-    return true
+// Function to find all bookings and send back
+export const getAllBookings = async (req, res) => {
+  try {
+    // Finding bookings
+    const bookings = await Booking.find();
+
+    // Response
+    return res.status(200).json({ bookings });
+  } catch (error) {
+    console.error(error);
+    handleInternalError(res);
   }
 };
 
@@ -150,7 +164,7 @@ export const verifyBooking = async (req, res) => {
 
     // Checking booking's status
     const isAlreadyChecked = checkBookingStatus(booking);
-    if(isAlreadyChecked) return res.status(403).send("forbidden")
+    if (isAlreadyChecked) return res.status(403).send("forbidden");
 
     // If booking's payment is not paid and booking's status is requiredPayment (i.e. Booking is failed)
     if (!booking.isPaid && booking.status === "paymentRequired") {
@@ -185,7 +199,7 @@ export const bookingFailed = async (req, res) => {
 
     // Checking booking's status
     const isAlreadyChecked = checkBookingStatus(booking);
-    if(isAlreadyChecked) return res.status(403).send("forbidden")
+    if (isAlreadyChecked) return res.status(403).send("forbidden");
 
     // If bookings payment is paid then we return an error that redirects client to paymentSuccess page from client side
     if (booking.isPaid) return handleBadRequest(res, "Invalid Request");
@@ -195,9 +209,8 @@ export const bookingFailed = async (req, res) => {
       await updateShowtimeBookedSeats(showtime, booking.seats, "remove");
     }
 
-    // Updating booking status
-    booking.status = "paymentFailed";
-    await booking.save();
+    // Deleting the booking after updating the status
+    await booking.deleteOne();
 
     // Response
     return res.status(200).json({ message: "Updated status" });
@@ -250,6 +263,7 @@ export const handleStripeWebhook = async (req, res) => {
           if (showtime) {
             await updateShowtimeBookedSeats(showtime, booking.seats, "remove");
           }
+          await booking.deleteOne();
         }
         break;
       default:

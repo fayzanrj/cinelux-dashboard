@@ -3,9 +3,24 @@ import UserAuthorizeMiddleware from "../middlewares/UserAuthorizeMiddleware.js";
 import * as bookingControllers from "../controllers/BookingControllers.js";
 import IsValidIdMiddle from "../middlewares/IsValidIdMiddle.js";
 import bodyParser from "body-parser";
+import AdminAuthorizeMiddleware from "../middlewares/AdminAuthorizeMiddleware.js";
 
 // Router object
 const router = express.Router();
+
+// Route to find user bookings, checks for user authorization
+router.get(
+  "/getBookings",
+  UserAuthorizeMiddleware,
+  bookingControllers.getBookings
+);
+
+// Route to find all bookings, checks for admin authorization
+router.get(
+  "/getAllBookings",
+  AdminAuthorizeMiddleware,
+  bookingControllers.getAllBookings
+);
 
 // Route to book tickets, checks for user authorization and valid showtime id
 router.post(
