@@ -1,12 +1,12 @@
 import { useState } from "react";
 import SearchMovieImdbModal from "../movies/SearchMovieImdbModal";
+import AddShowTimeModal from "../showtimes/AddShowTimeModal";
 import AddUserModal from "../users/AddUserModal";
 import ButtonLayout from "./ButtonLayout";
-import AddShowTimeModal from "../showtimes/AddShowTimeModal";
 
 // Props
 interface AddNewButtonProps {
-  variant: "MOVIE" | "USER" | "SHOWTIME";
+  variant: "MOVIE" | "ADMIN" | "SHOWTIME";
   label?: string;
   background?: "primary" | "danger" | "transparent";
 }
@@ -27,7 +27,7 @@ const AddNewButton: React.FC<AddNewButtonProps> = ({
     switch (variant) {
       case "MOVIE":
         return <SearchMovieImdbModal closeModal={toggleModal} />;
-      case "USER":
+      case "ADMIN":
         return <AddUserModal closeModal={toggleModal} />;
       case "SHOWTIME":
         return <AddShowTimeModal closeModal={toggleModal} />;
@@ -44,7 +44,7 @@ const AddNewButton: React.FC<AddNewButtonProps> = ({
       switch (variant) {
         case "MOVIE":
           return "Add New Movie";
-        case "USER":
+        case "ADMIN":
           return "Add New User";
         case "SHOWTIME":
           return "Add New Showtime";

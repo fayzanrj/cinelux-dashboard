@@ -13,7 +13,7 @@ import FetchMovieFromIMDB from "../libs/FetchMovieFromIMDB";
 import MovieProps from "../props/MovieProps";
 import StateInputField from "../components/shared/StateInputField";
 
-const AddMovie = () => {
+const AddMoviePage = () => {
   // States
   const [movie, setMovie] = useState<MovieProps | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -124,4 +124,4 @@ const AddMovie = () => {
   );
 };
 
-export default AddMovie;
+export default AddMoviePage;

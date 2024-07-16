@@ -1,14 +1,13 @@
 import { useEffect } from "react";
-import AddNewButton from "../components/shared/AddNewButton";
 import Error from "../components/shared/Error";
+import PageHeader from "../components/shared/PageHeader";
 import ScreenLoader from "../components/shared/ScreenLoader";
 import SidebarLayout from "../components/sidebar/SidebarLayout";
 import UserDetails from "../components/users/UserDetails";
 import { useAppContext } from "../context/AppContext";
 import { useAuth } from "../context/AuthProvider";
-import RefreshButton from "../components/shared/RefreshButton";
 
-const Users = () => {
+const UsersPage = () => {
   // Hooks
   // Destructuring from app context
   const { FetchAdmins, allAdmins, isFetchingAdmins } = useAppContext();
@@ -45,6 +44,8 @@ const Users = () => {
   if (isFetchingAdmins) {
     return (
       <SidebarLayout>
+        {/* HEADER */}
+        <PageHeader variant="ADMIN" />
         <ScreenLoader />
       </SidebarLayout>
     );
@@ -61,11 +62,8 @@ const Users = () => {
   return (
     <SidebarLayout pageName="Users">
       <div className="w-full px-4 text-white">
-        <div className="flex items-center justify-end gap-2">
-          {/* ADMIN ACTION BUTTON */}
-          {user.role === "admin" && <AddNewButton variant="USER" />}
-          <RefreshButton variant="ADMINS" />
-        </div>
+        {/* HEADER */}
+        <PageHeader variant="ADMIN" />
 
         {/* CURRENT LOGGED IN USER */}
         <UserSection label="You">
@@ -82,7 +80,7 @@ const Users = () => {
   );
 };
 
-export default Users;
+export default UsersPage;
 
 // Props for user section
 interface UserSectionProps {

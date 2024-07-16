@@ -5,7 +5,7 @@ interface ShowtimeProps {
     screen: ScreenProps
     language: string,
     movie: {
-        _id: string,
+        _id?: string,
         title: string,
     },
     booked?: string[]

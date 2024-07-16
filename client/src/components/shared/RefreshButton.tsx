@@ -1,12 +1,12 @@
 import React from "react";
 import { IoMdRefresh } from "react-icons/io";
 import { useAppContext } from "../../context/AppContext";
-import ButtonLayout from "./ButtonLayout";
 import formatDateInDMY from "../../libs/FormatDateInDMY";
+import ButtonLayout from "./ButtonLayout";
 
 // Props
-interface RefreshMovieProps {
-  variant: "MOVIE";
+interface RefreshProps {
+  variant: "MOVIE" | "ADMIN" | "BOOKING";
 }
 
 interface RefreshShowtimeProps {
@@ -14,27 +14,24 @@ interface RefreshShowtimeProps {
   selectedDate: Date;
 }
 
-interface RefreshAdminsProps {
-  variant: "ADMINS";
-}
-
-type RefreshButtonProps =
-  | RefreshMovieProps
-  | RefreshShowtimeProps
-  | RefreshAdminsProps;
+// Props
+type RefreshButtonProps = RefreshProps | RefreshShowtimeProps;
 
 const RefreshButton: React.FC<RefreshButtonProps> = ({ variant, ...props }) => {
+  // Extracting selected date from props if variant is Showtime
   const selectedDate = (props as RefreshShowtimeProps).selectedDate;
 
   // Hook
-  const { FetchMovies, FetchShowtimes, FetchAdmins } = useAppContext();
+  const { FetchMovies, FetchShowtimes, FetchAdmins, FetchBookings } =
+    useAppContext();
 
   // Fuction to trigger refreshing
   const refresh = () => {
     try {
       variant === "MOVIE" && FetchMovies();
       variant === "SHOWTIME" && FetchShowtimes(formatDateInDMY(selectedDate));
-      variant === "ADMINS" && FetchAdmins();
+      variant === "ADMIN" && FetchAdmins();
+      variant === "BOOKING" && FetchBookings();
     } catch (error) {
       console.error(error);
     }

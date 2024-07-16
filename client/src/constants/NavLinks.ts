@@ -1,6 +1,6 @@
 import { CiClock2 } from "react-icons/ci";
 import { FaUsersLine } from "react-icons/fa6";
-import { MdMovie } from "react-icons/md";
+import { MdMovie, MdOutlineDateRange } from "react-icons/md";
 import NavLinkProps from "../props/NavLinkProps";
 
 const NavLinks: NavLinkProps[] = [
@@ -13,6 +13,11 @@ const NavLinks: NavLinkProps[] = [
     link: "movies",
     title: "Movies",
     Icon: MdMovie,
+  },
+  {
+    link: "bookings",
+    title: "Bookings",
+    Icon: MdOutlineDateRange,
   },
   {
     link: "users",

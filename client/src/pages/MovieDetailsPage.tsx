@@ -11,7 +11,7 @@ import SelectInputField from "../components/shared/SelectInputField";
 import { bookingOptions, statusOptions } from "../constants/SelectOptions";
 import StateInputField from "../components/shared/StateInputField";
 
-const MovieDetails = () => {
+const MovieDetailsPage = () => {
   // States
   const [movie, setMovie] = useState<MovieProps | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -102,4 +102,4 @@ const MovieDetails = () => {
   );
 };
 
-export default MovieDetails;
+export default MovieDetailsPage;

@@ -1,14 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
 import MoviesList from "../components/movies/MoviesList";
-import AddNewButton from "../components/shared/AddNewButton";
+import PageHeader from "../components/shared/PageHeader";
+import ScreenLoader from "../components/shared/ScreenLoader";
 import StateInputField from "../components/shared/StateInputField";
 import SidebarLayout from "../components/sidebar/SidebarLayout";
 import { useAppContext } from "../context/AppContext";
 import MovieProps from "../props/MovieProps";
-import RefreshButton from "../components/shared/RefreshButton";
-import ScreenLoader from "../components/shared/ScreenLoader";
 
-const Movies = () => {
+const MoviesPage = () => {
   // State
   const [filteredMovies, setFilteredMovies] = useState<MovieProps[] | null>([]);
   const [searchText, setSearchText] = useState("");
@@ -26,9 +25,8 @@ const Movies = () => {
     (text: string) => {
       if (text) {
         setFilteredMovies(
-          (prev) =>
-            prev &&
-            prev.filter((movie) =>
+          allMovies &&
+            allMovies.filter((movie) =>
               movie.title.toLowerCase().includes(text.toLowerCase())
             )
         );
@@ -47,7 +45,7 @@ const Movies = () => {
   return (
     <SidebarLayout pageName="Movies">
       {/* HEADER */}
-      <h1 className="text-3xl font-bold text-white">Movies</h1>
+      <PageHeader variant="MOVIE" />
 
       {/* SEARCH BAR */}
       <section className="my-6">
@@ -61,13 +59,6 @@ const Movies = () => {
         />
       </section>
 
-      <div className="flex flex-wrap justify-end gap-2">
-        {/* ADD NEW MOVIES BUTTON */}
-        <AddNewButton variant="MOVIE" />
-        {/* REFRESH BUTTON */}
-        <RefreshButton variant="MOVIE" />
-      </div>
-
       {/* ALL/FILTERED MOVIES LIST */}
       {isFetchingMovies ? (
         <ScreenLoader />
@@ -78,4 +69,4 @@ const Movies = () => {
   );
 };
 
-export default Movies;
+export default MoviesPage;

@@ -11,32 +11,43 @@ import ButtonLayout from "../components/shared/ButtonLayout";
 import { useAppContext } from "../context/AppContext";
 import calculateTime from "../libs/CalculateTime";
 
-const ShowtimeDetails = () => {
+const ShowtimeDetailsPage = () => {
   // States
   const [showDetails, setShowDetails] = useState<ShowtimeProps | null>(null);
   const [movieDetails, setMovieDetails] = useState<MovieProps | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   // Destructuring from app context
-  const { FindMovieById, FindShowtimeById } = useAppContext();
+  const { FindMovieById, FindShowtimeById, FetchShowtimeById, showtimes } =
+    useAppContext();
 
   // Hooks
   const params = useParams() as { id: string };
 
   // Use effect to get showtime data
   useEffect(() => {
-    const fetchShowtime = async () => {
+    const getShowtime = async () => {
       try {
-        // Finding showtime by all showtimes array
-        const showtime = params.id ? FindShowtimeById(params.id) : null;
-        setShowDetails(showtime);
-        if (showtime) {
-          // If showtime is found then finding movie from all movies array
-          const movie = showtime.movie._id
-            ? FindMovieById(showtime.movie._id)
-            : null;
-          setMovieDetails(movie);
+        let showtime = null;
+        let movie = null;
+
+        if (showtimes === null) {
+          // Extracting showtime from server if showtimes are not already fetched
+          const res = await FetchShowtimeById(params.id);
+          if (res) {
+            showtime = res.showtime;
+            movie = res.movie;
+          }
+        } else {
+          // Getting showtime for fetched showtimes
+          showtime = params.id ? FindShowtimeById(params.id) : null;
+          if (showtime) {
+            movie = FindMovieById(showtime.movie._id!);
+          }
         }
+
+        setShowDetails(showtime);
+        setMovieDetails(movie);
       } catch (error) {
         handleApiError(error);
       } finally {
@@ -44,9 +55,8 @@ const ShowtimeDetails = () => {
       }
     };
 
-    // Calling function
-    fetchShowtime();
-  }, [params.id]);
+    getShowtime();
+  }, [params.id, showtimes]);
 
   // If showtime is being found
   if (isLoading)
@@ -93,7 +103,7 @@ const ShowtimeDetails = () => {
   );
 };
 
-export default ShowtimeDetails;
+export default ShowtimeDetailsPage;
 
 // Item props
 interface ShowtimeDetailItemProps {

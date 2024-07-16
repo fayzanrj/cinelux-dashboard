@@ -65,7 +65,7 @@ const BookTickets: React.FC<BookTicketsProps> = ({
         <PrintTickets
           closeModal={closeModal}
           selectedSeats={selectedSeats}
-          showtime={showtime}
+          {...showtime}
         />
       )}
 

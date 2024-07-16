@@ -12,7 +12,7 @@ import { handleApiError } from "../libs/HandleApiError";
 import { LogInInputType, logInFormSchema } from "../schema/LoginFormSchema";
 import ScreenLoader from "../components/shared/ScreenLoader";
 
-const LogIn = () => {
+const LogInPage = () => {
   // State
   const [isLoading, setIsLoading] = useState<boolean>(false);
   // Hooks
@@ -105,4 +105,4 @@ const LogIn = () => {
   );
 };
 
-export default LogIn;
+export default LogInPage;

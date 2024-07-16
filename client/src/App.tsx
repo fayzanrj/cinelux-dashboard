@@ -3,23 +3,25 @@ import { Toaster } from "sonner";
 import "./App.css";
 import { AppContextProvider } from "./context/AppContext";
 import { AuthProvider, RequiredAuth } from "./context/AuthProvider";
-import AddMovie from "./pages/AddMovie";
-import LogIn from "./pages/LogIn";
-import MovieDetails from "./pages/MovieDetails";
-import Movies from "./pages/Movies";
-import ShowtimeDetails from "./pages/ShowtimeDetails";
-import Showtimes from "./pages/Showtimes";
-import Ticketing from "./pages/Ticketing";
-import Users from "./pages/Users";
+import LogInPage from "./pages/LogInPage";
+import ShowtimesPage from "./pages/ShowtimesPage";
+import ShowtimeDetailsPage from "./pages/ShowtimeDetailsPage";
+import TicketingPage from "./pages/TicketingPage";
+import MoviesPage from "./pages/MoviesPage";
+import AddMoviePage from "./pages/AddMoviePage";
+import MovieDetailsPage from "./pages/MovieDetailsPage";
+import UsersPage from "./pages/UsersPage";
+import BookingsPage from "./pages/BookingsPage";
 
 function App() {
+  // Navigation routes
   const router = createBrowserRouter([
-    { path: "/", element: <LogIn /> },
+    { path: "/", element: <LogInPage /> },
     {
       path: "/showtimes",
       element: (
         <RequiredAuth>
-          <Showtimes />
+          <ShowtimesPage />
         </RequiredAuth>
       ),
     },
@@ -27,7 +29,7 @@ function App() {
       path: "/showtimes/:id",
       element: (
         <RequiredAuth>
-          <ShowtimeDetails />
+          <ShowtimeDetailsPage />
         </RequiredAuth>
       ),
     },
@@ -35,7 +37,7 @@ function App() {
       path: "/showtimes/:id/ticketing",
       element: (
         <RequiredAuth>
-          <Ticketing />
+          <TicketingPage />
         </RequiredAuth>
       ),
     },
@@ -43,7 +45,7 @@ function App() {
       path: "/movies",
       element: (
         <RequiredAuth>
-          <Movies />
+          <MoviesPage />
         </RequiredAuth>
       ),
     },
@@ -51,7 +53,7 @@ function App() {
       path: "/movies/add",
       element: (
         <RequiredAuth>
-          <AddMovie />
+          <AddMoviePage />
         </RequiredAuth>
       ),
     },
@@ -59,7 +61,7 @@ function App() {
       path: "/movies/details",
       element: (
         <RequiredAuth>
-          <MovieDetails />
+          <MovieDetailsPage />
         </RequiredAuth>
       ),
     },
@@ -67,7 +69,15 @@ function App() {
       path: "/users",
       element: (
         <RequiredAuth>
-          <Users />
+          <UsersPage />
+        </RequiredAuth>
+      ),
+    },
+    {
+      path: "/bookings",
+      element: (
+        <RequiredAuth>
+          <BookingsPage />
         </RequiredAuth>
       ),
     },

@@ -1,15 +1,14 @@
 import { useEffect, useState } from "react";
-import AddNewButton from "../components/shared/AddNewButton";
-import RefreshButton from "../components/shared/RefreshButton";
+import { useSearchParams } from "react-router-dom";
+import PageHeader from "../components/shared/PageHeader";
 import ScreenLoader from "../components/shared/ScreenLoader";
 import DatePicker from "../components/showtimes/DatePicker";
 import ShowtimesList from "../components/showtimes/ShowtimesList";
 import SidebarLayout from "../components/sidebar/SidebarLayout";
 import { useAppContext } from "../context/AppContext";
-import { useSearchParams } from "react-router-dom";
 import formatDateInDMY from "../libs/FormatDateInDMY";
 
-const Showtimes = () => {
+const ShowtimesPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   // State
   const [selectedDate, setSelectedDate] = useState(
@@ -28,14 +27,9 @@ const Showtimes = () => {
 
   return (
     <SidebarLayout pageName="Showtimes">
+  
       {/* HEADER */}
-      <header className="flex flex-wrap items-center justify-between">
-        <h1 className="text-3xl font-bold text-white">Showtimes</h1>
-        <div className="flex items-center gap-2">
-          <AddNewButton variant="SHOWTIME" />
-          <RefreshButton variant="SHOWTIME" selectedDate={selectedDate} />
-        </div>
-      </header>
+      <PageHeader variant="SHOWTIME" selectedDate={selectedDate} />
 
       {/* Date picker to select date */}
       <DatePicker
@@ -57,4 +51,4 @@ const Showtimes = () => {
   );
 };
 
-export default Showtimes;
+export default ShowtimesPage;

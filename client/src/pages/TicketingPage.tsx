@@ -10,7 +10,7 @@ import { handleApiError } from "../libs/HandleApiError";
 import ShowtimeProps from "../props/ShowtimeProps";
 import BookTickets from "../components/ticketing/BookTickets";
 
-const Ticketing = () => {
+const TicketingPage = () => {
   // States
   const [showtime, setShowtime] = useState<ShowtimeProps | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -107,7 +107,7 @@ const Ticketing = () => {
   );
 };
 
-export default Ticketing;
+export default TicketingPage;
 
 // Showtime details
 const ShowtimeTicktingDetails: React.FC<ShowtimeProps> = ({

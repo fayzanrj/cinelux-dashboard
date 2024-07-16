@@ -1,5 +1,8 @@
 import getBgColor from "../../libs/GetBgColor";
-import ShowtimeProps from "../../props/ShowtimeProps";
+import {
+  ScreenProps,
+  TimeProps,
+} from "../../props/ShowtimeProps";
 import ButtonLayout from "../shared/ButtonLayout";
 import ScreenModal from "../shared/ScreenModal";
 
@@ -7,16 +10,25 @@ import ScreenModal from "../shared/ScreenModal";
 interface PrintTicketsProps {
   closeModal: () => void;
   selectedSeats: Set<string>;
-  showtime: ShowtimeProps;
+  time: TimeProps;
+  date: string;
+  screen: ScreenProps;
+  language: string;
+  movie: {
+    _id?: string;
+    title: string;
+  };
 }
 
 const PrintTickets: React.FC<PrintTicketsProps> = ({
   closeModal,
-  showtime,
   selectedSeats,
+  date,
+  language,
+  movie,
+  screen,
+  time,
 }) => {
-  const { date, language, movie, screen, time } = showtime;
-
   // Function to handle print
   const handlePrint = () => window.print();
 

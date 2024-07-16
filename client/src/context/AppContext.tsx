@@ -13,6 +13,7 @@ import ShowtimeProps from "../props/ShowtimeProps";
 import UserProps from "../props/UserProps";
 import useHeaders from "../hooks/useHeaders";
 import { useAuth } from "./AuthProvider";
+import BookingProps from "../props/BookingsProps";
 
 // Props for AppContext
 interface AppContextProps {
@@ -42,9 +43,23 @@ interface AppContextProps {
   isFetchingShowtimes: boolean;
   setIsFetchingShowtimes: React.Dispatch<React.SetStateAction<boolean>>;
   FetchShowtimes: (date: string) => void;
+  FetchShowtimeById: (id: string) => Promise<
+    | {
+        showtime: ShowtimeProps;
+        movie: MovieProps;
+      }
+    | undefined
+  >;
   FindShowtimeById: (id: string) => ShowtimeProps | null;
   AddShowtime: (showtime: ShowtimeProps) => void;
   DeleteShowtime: (id: string) => void;
+
+  // BOOKING PROPS
+  bookings: BookingProps[] | null;
+  setBookings: React.Dispatch<React.SetStateAction<BookingProps[] | null>>;
+  isFetchingBookings: boolean;
+  setIsFetchingBookings: React.Dispatch<React.SetStateAction<boolean>>;
+  FetchBookings: () => void;
 }
 
 // AppContext
@@ -67,6 +82,9 @@ export const AppContextProvider: React.FC<AppContextProviderProps> = ({
   // States for showtimes
   const [showtimes, setShowtimes] = useState<ShowtimeProps[] | null>(null);
   const [isFetchingShowtimes, setIsFetchingShowtimes] = useState(true);
+  // States for bookings
+  const [bookings, setBookings] = useState<BookingProps[] | null>(null);
+  const [isFetchingBookings, setIsFetchingBookings] = useState(true);
 
   // Header hooks
   const userHeaders = useUserHeaders();
@@ -139,6 +157,26 @@ export const AppContextProvider: React.FC<AppContextProviderProps> = ({
     return null;
   };
 
+  // Function to fetch showtime by Id from backend
+  const FetchShowtimeById = async (id: string) => {
+    try {
+      const res = await axios.get(
+        `${
+          import.meta.env.VITE_SERVER_HOST
+        }/api/v1/showtimes/getShowtime/${id}`,
+        {
+          headers: userHeaders,
+        }
+      );
+      const showtime = res.data.showtime as ShowtimeProps;
+      const movie = res.data.movie as MovieProps;
+      return { showtime, movie };
+    } catch (error) {
+      handleApiError(error);
+      setAllMovies(null);
+    } 
+  };
+
   // Function to add a showtimes in showtimes arrays
   const AddShowtime = (showtime: ShowtimeProps) => {
     setShowtimes((prev) => [...(prev || []), showtime]);
@@ -168,6 +206,8 @@ export const AppContextProvider: React.FC<AppContextProviderProps> = ({
       setIsFetchingMovies(false);
     }
   };
+
+  // Function to fetch Movie by Id from db
 
   // Function to find a movie by ID from allmovies array
   const FindMovieById = (id: string) => {
@@ -201,6 +241,27 @@ export const AppContextProvider: React.FC<AppContextProviderProps> = ({
     );
   };
 
+  // BOOKINGS
+  // Function to fetch bookings
+  const FetchBookings = async () => {
+    try {
+      setIsFetchingBookings(true);
+      console.log("hi")
+      const res = await axios.get(
+        `${import.meta.env.VITE_SERVER_HOST}/api/v1/bookings/getAllBookings`,
+        {
+          headers,
+        }
+      );
+      setBookings(res.data.bookings);
+    } catch (error) {
+      handleApiError(error);
+      setBookings(null);
+    } finally {
+      setIsFetchingBookings(false);
+    }
+  };
+
   // Fetch movies on component mount
   useEffect(() => {
     if (auth && !allMovies) {
@@ -212,10 +273,16 @@ export const AppContextProvider: React.FC<AppContextProviderProps> = ({
   return (
     <AppContext.Provider
       value={{
+        // Admins
         allAdmins,
         setAllAdmins,
+        setIsFetchingAdmins,
+        isFetchingAdmins,
+        FetchAdmins,
         AddNewAdmin,
         RemoveAdmin,
+
+        // Movies
         allMovies,
         setAllMovies,
         AddMovie,
@@ -225,17 +292,24 @@ export const AppContextProvider: React.FC<AppContextProviderProps> = ({
         FindMovieById,
         isFetchingMovies,
         setIsFetchingMovies,
-        isFetchingShowtimes,
-        setIsFetchingShowtimes,
+
+        // Showtimes
         showtimes,
         setShowtimes,
+        isFetchingShowtimes,
+        setIsFetchingShowtimes,
         FetchShowtimes,
+        FetchShowtimeById,
         AddShowtime,
         DeleteShowtime,
         FindShowtimeById,
-        FetchAdmins,
-        setIsFetchingAdmins,
-        isFetchingAdmins,
+
+        // Bookings
+        bookings,
+        setBookings,
+        isFetchingBookings,
+        setIsFetchingBookings,
+        FetchBookings,
       }}
     >
       {children}
