@@ -5,6 +5,7 @@ import {
   updateShowtimeBookedSeats,
 } from "../libs/bookingHelpers.js";
 import { validateEmail } from "../libs/RegexFunctions.js";
+import { SendBookingEmail } from "../libs/SendBookingEmail.js";
 import {
   handleBadRequest,
   handleInternalError,
@@ -244,6 +245,8 @@ export const handleStripeWebhook = async (req, res) => {
   // Getting session and booking object from database
   const session = event.data.object;
   const booking = await Booking.findById(session.client_reference_id);
+  // Finding showtime
+  const showtime = await Showtime.findById(booking.showtimeId);
 
   try {
     switch (event.type) {
@@ -253,14 +256,21 @@ export const handleStripeWebhook = async (req, res) => {
           // Updating booking's payment status
           booking.isPaid = true;
           await booking.save();
+
+          if (showtime)
+            await SendBookingEmail(
+              booking.customerEmail,
+              booking.customerName,
+              showtime,
+              booking.seats
+            );
         }
         break;
       case "checkout.session.async_payment_failed":
       case "checkout.session.expired":
         if (booking) {
-          // Finding showtime and then removing booked seats
-          const showtime = await Showtime.findById(booking.showtimeId);
           if (showtime) {
+            // Removing seats from showtime
             await updateShowtimeBookedSeats(showtime, booking.seats, "remove");
           }
           await booking.deleteOne();
