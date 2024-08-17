@@ -133,7 +133,7 @@ export const bookTickets = async (req, res) => {
               name: `Seats for ${showtime.movie.title} (${showtime.language})`,
               description: `${seats.join(", ")} for ${showtime.date} at ${
                 showtime.time
-              }`,
+              }. Use following card details \n Card number : 4242 4242 4242 4242 \n Expiry Date : 12/34 \n CVV : 567`,
             },
           },
           quantity: seats.length,
