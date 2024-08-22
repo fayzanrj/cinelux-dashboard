@@ -1,5 +1,4 @@
 import React from "react";
-import sortShowtimes from "../../libs/SortShowtimes";
 import ShowtimeProps from "../../props/ShowtimeProps";
 import Error from "../shared/Error";
 import ShowtimesListItem from "./ShowtimeListItem";
@@ -21,7 +20,8 @@ const ShowtimesList: React.FC<ShowtimesListProps> = ({ showtimes }) => {
       </div>
     );
 
-  return sortShowtimes(showtimes).map((show) => (
+
+  return showtimes.map((show) => (
     <ShowtimesListItem key={show._id!} {...show} />
   ));
 };

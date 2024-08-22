@@ -1,4 +1,7 @@
+import filterShowtimes from "../libs/filterShowtimes.js";
 import { validateDate } from "../libs/RegexFunctions.js";
+import sortShowsByDate from "../libs/SortShowsByDate.js";
+import sortShowsByTime from "../libs/SortShowsByTime.js";
 import {
   handleBadRequest,
   handleInternalError,
@@ -69,22 +72,55 @@ export const getShowtimesbyDate = async (req, res) => {
       date,
     });
 
+    const sortedShowtimes = sortShowsByTime(showtimes);
+
     // Response
-    return res.status(200).json({ showtimes });
+    return res.status(200).json({ showtimes: sortedShowtimes });
+  } catch (error) {
+    console.error(error);
+    handleInternalError(res);
+  }
+};
+// Controller to get only showtimes for a specific movie
+export const getShowtimesByMovieId = async (req, res) => {
+  try {
+    const movieId = req.params.id;
+    const { startingDate } = req.query;
+
+    // Validating date format
+    if (!validateDate(startingDate)) {
+      return handleBadRequest(
+        res,
+        "Invalid date format. Date should be in DD-MM-YYYY format."
+      );
+    }
+
+    // Finding showtimes by movie ID
+    const showtimes = await Showtime.find({
+      "movie._id": movieId,
+    });
+
+    // Filtering showtimes to include only those with dates on or after the input date
+    const filteredShowtimes = filterShowtimes(showtimes, startingDate);
+
+    const sortedShowtimes = sortShowsByDate(filteredShowtimes);
+
+    // Response
+    return res.status(200).json({ showtimes: sortedShowtimes });
   } catch (error) {
     console.error(error);
     handleInternalError(res);
   }
 };
 
-// Controller to get  showtimes for a specific movie
-export const getShowtimesbyMovieId = async (req, res) => {
+// Controller to get showtimes and movie information for a specific movie
+export const getShowtimesAndMovieInfoById = async (req, res) => {
   try {
     const movieId = req.params.id;
-    const { date } = req.query;
+    const { startingDate } = req.query;
 
     // Validating date format
-    if (!validateDate(date)) {
+    if (!validateDate(startingDate)) {
       return handleBadRequest(
         res,
         "Invalid date format. Date should be in DD-MM-YYYY format."
@@ -94,24 +130,18 @@ export const getShowtimesbyMovieId = async (req, res) => {
     const movie = await Movie.findById(movieId);
     if (!movie) return handleNotFoundError(res, "Movie not found");
 
-    // Spliting and converting input date to a comparable format
-    const [day, month, year] = date.split("-");
-    const inputDate = new Date(year, month - 1, day); // JavaScript months are 0-indexed
-
     // Finding showtimes by movie ID
     const showtimes = await Showtime.find({
       "movie._id": movieId,
     });
 
     // Filtering showtimes to include only those with dates on or after the input date
-    const filteredShowtimes = showtimes.filter((showtime) => {
-      const [showDay, showMonth, showYear] = showtime.date.split("-");
-      const showtimeDate = new Date(showYear, showMonth - 1, showDay);
-      return showtimeDate >= inputDate;
-    });
+    const filteredShowtimes = filterShowtimes(showtimes, startingDate);
+
+    const sortedShowtimes = sortShowsByDate(filteredShowtimes);
 
     // Response
-    return res.status(200).json({ showtimes: filteredShowtimes, movie });
+    return res.status(200).json({ showtimes: sortedShowtimes, movie });
   } catch (error) {
     console.error(error);
     handleInternalError(res);
