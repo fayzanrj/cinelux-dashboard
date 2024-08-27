@@ -26,6 +26,10 @@ const showtimeSchema = new Schema({
       type: String,
       required: true,
     },
+    poster_path: {
+      type: String,
+      required: true,
+    },
   },
   booked: [
     {

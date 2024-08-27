@@ -41,6 +41,7 @@ const ValidateShowtimeData = async (req, res, next) => {
     return handleNotFoundError(res, "Movie not found");
   }
 
+  req.body.movie = movieExists;
   // Moving to controller
   next();
 };

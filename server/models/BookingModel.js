@@ -50,6 +50,10 @@ const bookingSchema = new Schema(
         type: String,
         required: true,
       },
+      poster_path: {
+        type: String,
+        required: true,
+      },
     },
     isPaid: {
       type: Boolean,

@@ -7,6 +7,7 @@ interface ShowtimeProps {
     movie: {
         _id?: string,
         title: string,
+        poster_path: string;
     },
     booked?: string[]
 }

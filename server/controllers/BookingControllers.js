@@ -103,7 +103,10 @@ export const bookTickets = async (req, res) => {
       showtimeId: showtime.id,
       customerEmail: email,
       customerName: name,
-      movie: { title: showtime.movie.title },
+      movie: {
+        title: showtime.movie.title,
+        poster_path: showtime.movie.poster_path,
+      },
       seats,
       status: "paymentRequired",
       isPaid: false,
